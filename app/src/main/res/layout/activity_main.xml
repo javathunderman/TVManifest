@@ -29,8 +29,19 @@
                 android:id="@+id/recyclerView"
                 android:layout_width="match_parent"
                 android:overScrollMode="never"
-                android:layout_height="wrap_content"/>
+                android:layout_height="wrap_content">
+
+            </androidx.recyclerview.widget.RecyclerView>
+
+                <com.google.android.material.floatingactionbutton.FloatingActionButton
+                    android:id="@+id/floatingActionButton"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:clickable="true"
+                    android:contentDescription="TODO"
+                    app:srcCompat="@android:drawable/ic_menu_preferences" />
             </LinearLayout>
         </ScrollView>
+
     </androidx.constraintlayout.widget.ConstraintLayout>
 </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>

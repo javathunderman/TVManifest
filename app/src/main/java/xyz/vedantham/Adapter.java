@@ -10,6 +10,7 @@ import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.TextView;
 import androidx.annotation.NonNull;
+import androidx.preference.PreferenceManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import java.text.ParseException;
@@ -19,6 +20,8 @@ import java.util.List;
 
 public class Adapter extends RecyclerView.Adapter<Adapter.MyViewHolder> {
     private List<Recording> recordingList;
+    private static String static_url;
+    private static String creds;
     public Adapter(List<Recording> recordingList) {
         this.recordingList = recordingList;
     }
@@ -28,6 +31,10 @@ public class Adapter extends RecyclerView.Adapter<Adapter.MyViewHolder> {
     public MyViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
         View view = LayoutInflater.from(parent.getContext())
                 .inflate(R.layout.recording_layout, parent, false);
+
+        var preferences = PreferenceManager.getDefaultSharedPreferences(view.getContext()).getAll();
+        creds = preferences.get("user") + ":" + preferences.get("pass");
+        static_url = (String) preferences.get("root_url");
         return new MyViewHolder(view);
     }
 
@@ -39,7 +46,7 @@ public class Adapter extends RecyclerView.Adapter<Adapter.MyViewHolder> {
         String vv = new SimpleDateFormat("yyyy-MM-dd hh:mm:ss a").format(df);
         holder.timestamp.setText(vv);
         holder.channel.setText(recordingItem.getChannel());
-        holder.button.setTag(Uri.parse(MainActivity.static_url.substring(0, 7) + MainActivity.creds + "@" + MainActivity.static_url.substring(7) + "play/ticket/dvrfile/" + recordingItem.getUuid() + "?title=Jeopardy!"));
+        holder.button.setTag(Uri.parse(static_url.substring(0, 7) + creds + "@" + static_url.substring(7) + "play/ticket/dvrfile/" + recordingItem.getUuid() + "?title=Jeopardy!"));
     }
 
     @Override
@@ -56,15 +63,11 @@ public class Adapter extends RecyclerView.Adapter<Adapter.MyViewHolder> {
             timestamp = itemView.findViewById(R.id.timestamp);
             channel = itemView.findViewById(R.id.channel);
             button = itemView.findViewById(R.id.button);
-            button.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v)
-                {
-                    Intent i = new Intent(Intent.ACTION_VIEW);
-                    i.setDataAndType((Uri) button.getTag(), "video/any" );
-                    i.setPackage("is.xyz.mpv");
-                    startActivity(v.getContext(), i, null);
-                }
+            button.setOnClickListener(v -> {
+                Intent i = new Intent(Intent.ACTION_VIEW);
+                i.setDataAndType((Uri) button.getTag(), "video/any" );
+                i.setPackage("is.xyz.mpv");
+                startActivity(v.getContext(), i, null);
             });
         }
     }

@@ -2,14 +2,17 @@ package xyz.vedantham;
 
 import static androidx.core.content.PackageManagerCompat.LOG_TAG;
 
+import android.content.Intent;
 import android.net.http.UrlRequest;
 import android.os.Bundle;
 
 import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.Toolbar;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
+import androidx.preference.PreferenceManager;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
@@ -32,15 +35,20 @@ import android.os.StrictMode;
 import android.util.Base64;
 import android.util.JsonReader;
 import android.util.Log;
+import android.view.MenuItem;
+import android.widget.Button;
 import android.widget.Toast;
+
+import com.google.android.material.floatingactionbutton.FloatingActionButton;
 
 
 public class MainActivity extends AppCompatActivity {
-    public static String static_url = "http://***REMOVED***:9981/";
     // this doesn't work with the VPN address?
     // should be an option to set which host
-    public static String creds = "***REMOVED***:***REMOVED***";
+
     // should make this an option
+    private String static_url = "http://***REMOVED***:9981/";
+    private String creds = "***REMOVED***:***REMOVED***";
     public List<Recording> readJsonStream(InputStream in) throws IOException {
         JsonReader reader = new JsonReader(new InputStreamReader(in, "UTF-8"));
         try {
@@ -104,7 +112,12 @@ public class MainActivity extends AppCompatActivity {
         RecyclerView recyclerView = findViewById(R.id.recyclerView);
         SwipeRefreshLayout swipeRefreshLayout = findViewById(R.id.swiperefresh);
         fetchList(recyclerView);
-
+        FloatingActionButton settingsButton = findViewById(R.id.floatingActionButton);
+        PreferenceManager.setDefaultValues(this, R.xml.preferences, false);
+        settingsButton.setOnClickListener(v -> {
+            Intent i = new Intent(MainActivity.this, SettingsActivity.class);
+            MainActivity.this.startActivity(i);
+        });
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main), (v, insets) -> {
             Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
@@ -116,8 +129,17 @@ public class MainActivity extends AppCompatActivity {
             }
         );
     }
+    @Override
+    public void onResume() {
+        super.onResume();
+        var preferences = PreferenceManager.getDefaultSharedPreferences(this).getAll();
 
+        creds = preferences.get("user") + ":" + preferences.get("pass");
+        static_url = (String) preferences.get("root_url");
+    }
     private void fetchList(RecyclerView recyclerView) {
+        var preferences = PreferenceManager.getDefaultSharedPreferences(this).getAll();
+
         HttpURLConnection urlConnection = null;
         byte[] encodedAuth = Base64.encode(creds.getBytes(StandardCharsets.UTF_8), 0);
         String authHeaderValue = "Basic " + new String(encodedAuth);

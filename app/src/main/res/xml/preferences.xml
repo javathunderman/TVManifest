@@ -1,0 +1,19 @@
+<PreferenceScreen
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <EditTextPreference
+        app:key="root_url"
+        app:title="Root URL"
+        app:summary="Set the TVHeadEnd root URL"
+        app:defaultValue="http://***REMOVED***:9981/"/>
+    <EditTextPreference
+        app:key="user"
+        app:title="Username"
+        app:summary="Set the TVHeadEnd username"
+        app:defaultValue="***REMOVED***"/>
+    <EditTextPreference
+        app:key="pass"
+        app:title="Password"
+        app:summary="Set the TVHeadEnd password"
+        app:defaultValue="***REMOVED***"/>
+</PreferenceScreen>
