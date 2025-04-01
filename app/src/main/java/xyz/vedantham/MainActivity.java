@@ -1,5 +1,7 @@
 package xyz.vedantham;
 
+import static androidx.core.content.PackageManagerCompat.LOG_TAG;
+
 import android.net.http.UrlRequest;
 import android.os.Bundle;
 
@@ -10,6 +12,7 @@ import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
+import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
 import java.io.BufferedInputStream;
 import java.io.EOFException;
@@ -21,11 +24,15 @@ import java.net.URL;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Date;
 import java.util.List;
 
 import android.os.StrictMode;
 import android.util.Base64;
 import android.util.JsonReader;
+import android.util.Log;
+import android.widget.Toast;
 
 
 public class MainActivity extends AppCompatActivity {
@@ -95,6 +102,22 @@ public class MainActivity extends AppCompatActivity {
         EdgeToEdge.enable(this);
         setContentView(R.layout.activity_main);
         RecyclerView recyclerView = findViewById(R.id.recyclerView);
+        SwipeRefreshLayout swipeRefreshLayout = findViewById(R.id.swiperefresh);
+        fetchList(recyclerView);
+
+        ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main), (v, insets) -> {
+            Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
+            v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
+            return insets;
+        });
+        swipeRefreshLayout.setOnRefreshListener(() -> {
+                fetchList(recyclerView);
+                swipeRefreshLayout.setRefreshing(false);
+            }
+        );
+    }
+
+    private void fetchList(RecyclerView recyclerView) {
         HttpURLConnection urlConnection = null;
         byte[] encodedAuth = Base64.encode(creds.getBytes(StandardCharsets.UTF_8), 0);
         String authHeaderValue = "Basic " + new String(encodedAuth);
@@ -111,6 +134,10 @@ public class MainActivity extends AppCompatActivity {
             recyclerView.setLayoutManager(new LinearLayoutManager(this));
             Adapter adapter = new Adapter(recordingList);
             recyclerView.setAdapter(adapter);
+
+            Date currentTime = Calendar.getInstance().getTime();
+            Toast toast = Toast.makeText(this /* MyActivity */, "Fetched at " + currentTime.toString(), Toast.LENGTH_SHORT);
+            toast.show();
         } catch (MalformedURLException e) {
             throw new RuntimeException(e);
         } catch (IOException e) {
@@ -120,11 +147,5 @@ public class MainActivity extends AppCompatActivity {
                 urlConnection.disconnect();
             }
         }
-
-        ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main), (v, insets) -> {
-            Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
-            v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
-            return insets;
-        });
     }
 }
