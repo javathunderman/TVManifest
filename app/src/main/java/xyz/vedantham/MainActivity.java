@@ -21,6 +21,7 @@ import java.io.BufferedInputStream;
 import java.io.EOFException;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.ConnectException;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -138,33 +139,38 @@ public class MainActivity extends AppCompatActivity {
         static_url = (String) preferences.get("root_url");
     }
     private void fetchList(RecyclerView recyclerView) {
-        var preferences = PreferenceManager.getDefaultSharedPreferences(this).getAll();
-
         HttpURLConnection urlConnection = null;
         byte[] encodedAuth = Base64.encode(creds.getBytes(StandardCharsets.UTF_8), 0);
         String authHeaderValue = "Basic " + new String(encodedAuth);
 
         StrictMode.ThreadPolicy gfgPolicy = new StrictMode.ThreadPolicy.Builder().permitAll().build();
         StrictMode.setThreadPolicy(gfgPolicy);
+        List<Recording> recordingList = new ArrayList<>();
 
         try {
             URL url = new URL(static_url + "api/dvr/entry/grid_finished");
             urlConnection = (HttpURLConnection) url.openConnection();
             urlConnection.setRequestProperty("Authorization", authHeaderValue);
             InputStream in = new BufferedInputStream(urlConnection.getInputStream());
-            List<Recording> recordingList = readJsonStream(in);
-            recyclerView.setLayoutManager(new LinearLayoutManager(this));
-            Adapter adapter = new Adapter(recordingList);
-            recyclerView.setAdapter(adapter);
+            recordingList = readJsonStream(in);
+
 
             Date currentTime = Calendar.getInstance().getTime();
             Toast toast = Toast.makeText(this /* MyActivity */, "Fetched at " + currentTime.toString(), Toast.LENGTH_SHORT);
             toast.show();
         } catch (MalformedURLException e) {
-            throw new RuntimeException(e);
-        } catch (IOException e) {
-            throw new RuntimeException(e);
+            Toast toast = Toast.makeText(this /* MyActivity */, "Bad URL", Toast.LENGTH_SHORT);
+            toast.show();
+        } catch (ConnectException e) {
+            Toast toast = Toast.makeText(this /* MyActivity */, "Unable to connect", Toast.LENGTH_SHORT);
+            toast.show();
+        } catch (Exception e) {
+            Toast toast = Toast.makeText(this /* MyActivity */, "Unknown error occurred " + e.toString(), Toast.LENGTH_SHORT);
+            toast.show();
         } finally {
+            recyclerView.setLayoutManager(new LinearLayoutManager(this));
+            Adapter adapter = new Adapter(recordingList);
+            recyclerView.setAdapter(adapter);
             if (urlConnection != null) {
                 urlConnection.disconnect();
             }
