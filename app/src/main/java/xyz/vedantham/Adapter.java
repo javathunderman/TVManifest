@@ -55,7 +55,7 @@ public class Adapter extends RecyclerView.Adapter<Adapter.MyViewHolder> {
         String vv = new SimpleDateFormat("yyyy-MM-dd hh:mm:ss a").format(df);
         holder.timestamp.setText(vv);
         holder.channel.setText(recordingItem.getChannel());
-        holder.button.setTag(Uri.parse(static_url.substring(0, 7) + creds + "@" + static_url.substring(7) + "play/ticket/dvrfile/" + recordingItem.getUuid() + "?title=Jeopardy!"));
+        holder.button.setTag(Uri.parse(static_url.substring(0, 7) + creds + "@" + static_url.substring(7) + "play/ticket/dvrfile/" + recordingItem.getUuid()));
         holder.deleteButton.setTag(recordingItem.getUuid());
     }
 
